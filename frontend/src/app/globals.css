@@ -1,0 +1,102 @@
+:root {
+  color: #e8eef2;
+  background: #0e141b;
+  font-family: system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+.screen {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 20px 40px;
+}
+
+.screen header {
+  margin-bottom: 20px;
+}
+
+.screen h1 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 650;
+}
+
+.screen header p {
+  margin: 6px 0 0;
+  color: #9aabba;
+}
+
+.panels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.panel {
+  min-height: 280px;
+  border: 1px solid #243140;
+  border-radius: 12px;
+  background: #151d27;
+  padding: 14px;
+}
+
+.panel h2 {
+  margin: 0 0 12px;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+}
+
+.panel.user h2 {
+  color: #d7dee6;
+}
+
+.panel.corrected h2 {
+  color: #7dcea0;
+}
+
+.stage {
+  display: grid;
+  place-items: center;
+  min-height: 220px;
+  border-radius: 8px;
+  background: #0c1218;
+  color: #8b9bab;
+  text-align: center;
+  padding: 16px;
+}
+
+.meter,
+.coach {
+  margin-top: 12px;
+  border: 1px solid #243140;
+  border-radius: 12px;
+  background: #151d27;
+  padding: 14px 16px;
+}
+
+.meter h2,
+.coach h2 {
+  margin: 0 0 8px;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  color: #9aabba;
+}
+
+.meter p,
+.coach p {
+  margin: 0;
+  color: #c5d0da;
+}
+
+@media (max-width: 800px) {
+  .panels {
+    grid-template-columns: 1fr;
+  }
+}
