@@ -66,7 +66,7 @@ export function DemoScreen() {
   const { lang, copy } = useLanguage();
   const clip = clips.find((item) => item.id === clipId) ?? clips[0];
   const showingUpload = Boolean(upload.url);
-  const clipCoach = useClipCoach(clip.id, lang, (clip.result as { coach?: Coach }).coach ?? null);
+  const clipCoach = useClipCoach(clip.id, lang, (clip.result as unknown as Result).coach ?? null);
   const labels = { short: copy.shortHold, long: copy.longHold };
 
   return (

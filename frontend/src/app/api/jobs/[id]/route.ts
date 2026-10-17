@@ -10,7 +10,7 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
   if (!dir) return Response.json({ error: "Unknown job." }, { status: 404 });
   for (const name of ["result.json", "state.json"]) {
     try {
-      const body = await readFile(path.join(dir, name), "utf8");
+      const body = await readFile(/*turbopackIgnore: true*/ path.join(/*turbopackIgnore: true*/ dir, name), "utf8");
       return new Response(body, { headers: { "Content-Type": "application/json" } });
     } catch {
       // The next file is the fallback while the job is still starting.

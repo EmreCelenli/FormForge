@@ -23,7 +23,7 @@ function run(root: string, clip: keyof typeof CLIPS, lang: string): Promise<bool
       [
         path.join(root, "backend", "scripts", "coach_clip.py"),
         "--result",
-        path.join(root, CLIPS[clip]),
+        path.join(/*turbopackIgnore: true*/ root, CLIPS[clip]),
         "--lang",
         lang,
         "--audio-dir",
