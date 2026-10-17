@@ -8,16 +8,16 @@
 </p>
 
 <p align="center">
+  <strong>AMD Token Factory · MiniCPM-V / DeepSeek Vision · MediaPipe Pose · Gemma 4 · Gradium TTS</sub>
+</p>
+
+<p align="center">
   <img src="frontend/public/frontend_readme.png" alt="FormForge showing a high plank beside the corrected form, with a cyan hologram, 180-degree alignment, angle meter, and coaching cues." width="920">
 </p>
 
 Most form analysis stops at a skeleton, a score, or a warning. **FormForge shows the corrected form on the movement you actually recorded**: same person, same timing, same camera view.
 
-This hackathon POC focuses on one thing and makes it unmistakable: a side-view high plank with piking or sagging hips. The original clip shows the measured shoulder–hip–ankle path. Beside it, deterministic geometry places the hip on the straight line and draws a cyan hologram over the same video. Straight reads as **180°**. A live meter explains the difference, and a short spoken cue arrives on the matching frames.
-
-<p align="center">
-  <sub>AMD Token Factory · MiniCPM-V / DeepSeek Vision · MediaPipe Pose · Gemma 4 · Gradium TTS</sub>
-</p>
+This hackathon POC focuses on one thing and makes it unmistakable: a side-view high plank with piking. The original clip shows the measured shoulder–hip–ankle path. Beside it, deterministic geometry places the hip on the straight line and draws a cyan hologram over the same video. Straight reads as **180°**. A live meter explains the difference, and a short spoken cue arrives on the matching frames.
 
 ## Why it is different
 
