@@ -39,7 +39,7 @@ MediaPipe runs on CPU and produces the landmarks. Deterministic code, not the co
 5. Ask `Gemma-4-31B-IT` for a short summary and two or three cue lines in the user's language. Send the structured finding and the measured frame spans, not the video. Gemma does not choose the frames.
 6. Send each finished line to Gradium text-to-speech. Gradium does not see the video and does not rewrite the line. If speech fails, the text remains.
 
-`MiniCPM-V-4.7-1B` may label the clip as high plank before the check runs. If it is unsure, the user selects high plank. It does not measure the hip. The AMD surface is Token Factory only, at `notebooks.amd.com/tokenfactory`. ROCm is not part of this build.
+`MiniCPM-V-4.7-1B` may label the clip as high plank before the check runs. If it is unsure, `DeepSeek-V4-Flash-Vision-Exp` is asked the same question. If both are unsure, the user selects high plank. Neither model measures the hip. The AMD surface is Token Factory only, at `notebooks.amd.com/tokenfactory`. ROCm is not part of this build.
 
 The target range is provisional configuration. It is not a clinical standard. Low confidence asks for a re-record and does not guess a correction. Reported pain shows a neutral handover and no exercise prescription.
 

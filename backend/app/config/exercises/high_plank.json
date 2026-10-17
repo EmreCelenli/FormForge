@@ -1,0 +1,12 @@
+{
+  "id": "high_plank",
+  "label": "High plank",
+  "provisional": true,
+  "rationale": "A straight side-view plank has hip offset near 0 degrees. This band is an engineering starting point, not a clinical standard.",
+  "joints": ["shoulder", "hip", "ankle"],
+  "error": "hip_misalignment",
+  "target_range": [-5, 5],
+  "min_keypoint_confidence": 0.5,
+  "min_evaluable_frame_ratio": 0.5,
+  "severity_excess_degrees": {"minor": 10, "moderate": 25}
+}

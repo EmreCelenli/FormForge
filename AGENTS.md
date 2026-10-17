@@ -29,7 +29,7 @@ The hackathon demo is that one plank clip. The pipeline is built so a later move
 The project must not assume that a dedicated AMD GPU instance is available.
 
 - **Pose backend:** MediaPipe, using a supported local runtime. CPU execution is the baseline. The same pose model runs for every exercise. A vision label does not switch MediaPipe into a plank mode or a squat mode.
-- **Exercise label:** `MiniCPM-V-4.7-1B` on Token Factory. It sees a few frames and returns a movement name. That name selects a versioned check config. It does not return joints, angles, or a corrected pose. If the label is unsure or has no config, ask the user which exercise it is.
+- **Exercise label:** `MiniCPM-V-4.7-1B` on Token Factory is asked first. It sees a few frames and returns a movement name. That name selects a versioned check config. It does not return joints, angles, or a corrected pose. If that label is unsure, `DeepSeek-V4-Flash-Vision-Exp` is asked the same question. If either model returns a confident configured label, `exercise.source` is `vision` and `exercise.model` is that catalogue id. If both are unsure or name no config, ask the user which exercise it is. DeepSeek does not replace MiniCPM, and it does not measure joints or write cues.
 - **Coach model:** `Gemma-4-31B-IT` on Token Factory. It receives the validated finding, the frame spans, and the user's language. It returns a short summary and two or three short cue lines. It does not see the video.
 - **Speech:** Gradium text-to-speech, which is allowed outside the Token Factory catalogue. It speaks the finished cue lines. It does not see the video, choose the error, or rewrite the words. One POST per line to `https://api.gradium.ai/api/post/speech/tts` with the key in the `x-api-key` header. Pick `voice_id` from Gradium's voice library for the requested language. The sample voice in Gradium's docs is not the shipped voice until it has been heard in that language.
 - **Local deterministic processing:** the selected check's angle, error decision, confidence, and hip-anchored correction run in Python.
@@ -51,17 +51,23 @@ TOKEN_FACTORY_BASE_URL=
 TOKEN_FACTORY_API_KEY=
 TOKEN_FACTORY_MODEL_ID=Gemma-4-31B-IT
 TOKEN_FACTORY_VISION_MODEL_ID=MiniCPM-V-4.7-1B
+TOKEN_FACTORY_VISION_FALLBACK_MODEL_ID=DeepSeek-V4-Flash-Vision-Exp
 GRADIUM_API_KEY=
 GRADIUM_VOICE_ID=
+GRADIUM_VOICE_ID_EN=
+GRADIUM_VOICE_ID_FR=
+GRADIUM_VOICE_ID_ES=
+GRADIUM_VOICE_ID_DE=
+GRADIUM_VOICE_ID_PT=
 GRADIUM_TTS_URL=https://api.gradium.ai/api/post/speech/tts
 
 # Frontend
 NEXT_PUBLIC_API_URL=http://localhost:8080
 ```
 
-The Token Factory base URL and API key come from the console after sign-in. The Gradium key stays server-side. Do not commit keys. A filled-in model name is not a claim that a live call succeeded. Leave `GRADIUM_VOICE_ID` empty until a library voice for the requested language has been heard.
+The Token Factory base URL and API key come from the console after sign-in. The Gradium key stays server-side. Do not commit keys. A filled-in model name is not a claim that a live call succeeded. Leave each `GRADIUM_VOICE_ID_EN`, `_FR`, `_ES`, `_DE`, and `_PT` empty until a library voice for that language has been heard. The suffixes are the ISO 639-1 codes. `GRADIUM_VOICE_ID` is the English voice when `GRADIUM_VOICE_ID_EN` is empty.
 
-The catalogue also lists DeepSeek-V4.1-Flash, DeepSeek-V4-Flash, DeepSeek-V4-Flash-Vision-Exp, GLM-5.3-Flash, MiMo-V2.6-Flash, MinerU2.5-Pro, MiniCPM5-2B, MiniCPM-V-4.7-35B-A3B, Qwen3.8-27B, and Qwen3.8-Flash-Next. Do not use them. `MiniCPM-V-4.7-35B-A3B` and `DeepSeek-V4-Flash-Vision-Exp` do not replace the 1B label model. MinerU2.5-Pro is a document model and has no job here. Gradium speech-to-text is not used.
+The catalogue also lists DeepSeek-V4.1-Flash, DeepSeek-V4-Flash, DeepSeek-V4-Flash-Vision-Exp, GLM-5.3-Flash, MiMo-V2.6-Flash, MinerU2.5-Pro, MiniCPM5-2B, MiniCPM-V-4.7-35B-A3B, Qwen3.8-27B, and Qwen3.8-Flash-Next. Do not use them for coaching or as a replacement for `MiniCPM-V-4.7-1B`. `DeepSeek-V4-Flash-Vision-Exp` may answer the exercise-label question only after MiniCPM is not confident. `MiniCPM-V-4.7-35B-A3B` does not replace the 1B label model. MinerU2.5-Pro is a document model and has no job here. Gradium speech-to-text is not used.
 
 If Token Factory is not yet verified, keep coaching behind an interface and report the blocker. Do not pretend a live call succeeded.
 
@@ -192,6 +198,7 @@ interface Result {
     id: string;
     label: string;
     source: "vision" | "selected";
+    model: string | null; // catalogue id that confirmed the label, or null when selected
   };
   confidence: number; // 0..1 overall
   coach: {
@@ -235,7 +242,7 @@ interface Result {
 - Show the corrected ghost only when its angle is inside the target range. Otherwise report the check as not corrected.
 - All per-frame arrays must align with `video.frames`. Validate dimensions and reject malformed internal results rather than emitting inconsistent data.
 - `target_range` is the provisional band from `backend/app/config/target_ranges.json`. Severity labels are provisional engineering labels, not medical risk scores.
-- `exercise.source` is `vision` only when `MiniCPM-V-4.7-1B` returned a confident configured label. It is `selected` when the user chose the exercise.
+- `exercise.source` is `vision` when `MiniCPM-V-4.7-1B`, or `DeepSeek-V4-Flash-Vision-Exp` after MiniCPM is not confident, returns a confident configured label. `exercise.model` is that catalogue id. Source is `selected` and `model` is `null` when the user chose the exercise.
 - `coach.steps` has two or three short lines. The frame spans come from the measured error, not from Gemma. `cue` is the same lines joined for a single text fallback. `audio_url` is set only after Gradium returns audio for that line.
 - Timing fields are measured durations. If a stage is skipped, report `0` and do not describe it as measured work. A failed or skipped model call is not a success.
 - `device` reports the device actually used, not the device hoped for.
@@ -281,7 +288,7 @@ No feature may diagnose a condition, identify an injury, promise injury preventi
 
 ### Coach model boundary
 
-`MiniCPM-V-4.7-1B` may name the exercise. `Gemma-4-31B-IT` receives only the validated structured finding, the measured frame spans, and the requested language. It must not calculate the offset, decide whether the error occurred, invent the target band, or produce corrected keypoints. Gradium receives only the finished step text.
+`MiniCPM-V-4.7-1B` may name the exercise. If it is not confident, `DeepSeek-V4-Flash-Vision-Exp` may name it. `Gemma-4-31B-IT` receives only the validated structured finding, the measured frame spans, and the requested language. It must not calculate the offset, decide whether the error occurred, invent the target band, or produce corrected keypoints. Gradium receives only the finished step text.
 
 - Gemma returns `summary` and two or three short `steps`. The lines are simple spoken corrections, in order.
 - Request the user's chosen language. The demo may ship one language. A second language is later and needs human review.

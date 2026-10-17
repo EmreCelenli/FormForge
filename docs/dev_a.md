@@ -14,7 +14,7 @@ You own:
 - `docker-compose.yml` and `backend/Dockerfile` when that later task starts
 - `docs/LICENSES.md` entries for backend assets you add
 
-You do not edit `frontend/**`. You do not change the contract in `AGENTS.md` on your own. You do not put Token Factory or Gradium keys in the frontend. You do not call a coach model other than `Gemma-4-31B-IT`, a vision model other than `MiniCPM-V-4.7-1B`, or a speech service other than Gradium TTS. You do not use Gradium speech-to-text. You do not use ROCm.
+You do not edit `frontend/**`. You do not change the contract in `AGENTS.md` on your own. You do not put Token Factory or Gradium keys in the frontend. You do not call a coach model other than `Gemma-4-31B-IT`, a vision model other than `MiniCPM-V-4.7-1B` followed by `DeepSeek-V4-Flash-Vision-Exp` when MiniCPM is not confident, or a speech service other than Gradium TTS. You do not use Gradium speech-to-text. You do not use ROCm.
 
 ## Demo path
 
@@ -35,14 +35,14 @@ The demo clip is one side-view high plank. Do these in order.
 6. **One-clip result.** Produce a real `Result` for that clip: keypoints, `hip_offset`, one `hip_misalignment` when the check is evaluable, and corrected keypoints. Set `exercise.source` to `selected` and `exercise.id` to `high_plank`. A local runner is enough. Full upload validation comes later.
 7. **Safety paths.** `low_confidence` returns that status and no guessed correction. `pain_reported` sets the safety handover and does not prescribe an exercise. Until H5 approval, keep the message neutral and mark the copy as unapproved.
 8. **Gemma.** Call `Gemma-4-31B-IT` from `coach.py`, server-side only. Send the validated finding, the measured frame spans, and `lang`. Do not send frames. Require `summary` and two or three short step lines. You assign the frame spans. Gemma does not choose them. On failure, set `coach` to `null`. Do not invent cue text. If the key is missing, report H1 and H4 and continue with the geometric result.
-9. **Gradium.** After the step text exists, POST each line to `GRADIUM_TTS_URL` with `GRADIUM_API_KEY` in `x-api-key`, the heard `GRADIUM_VOICE_ID`, and `output_format` `wav`. Store the audio where Dev B can play it, and set `audio_url`. On failure, keep the text and set `audio_url` to `null`. Do not send the video. Do not let Gradium rewrite the line. Skip speech-to-text.
+9. **Gradium.** After the step text exists, POST each line to `GRADIUM_TTS_URL` with `GRADIUM_API_KEY` in `x-api-key`, the heard voice for that language (`GRADIUM_VOICE_ID_EN`, `_FR`, `_ES`, `_DE`, or `_PT`), and `output_format` `wav`. `GRADIUM_VOICE_ID` is the English voice when `GRADIUM_VOICE_ID_EN` is empty. Store the audio where Dev B can play it, and set `audio_url`. On failure, keep the text and set `audio_url` to `null`. Do not send the video. Do not let Gradium rewrite the line. Skip speech-to-text.
 
 ## After the plank demo
 
 Start these only when the demo path produces a real plank `Result` and Dev B can play it.
 
 10. **Exercise config.** Keep the plank check as data: id, required joints, angle definition, provisional target range, and error label. Loading that file must reproduce the demo result. MediaPipe stays the same pose model.
-11. **Vision label.** Send a few frames to `MiniCPM-V-4.7-1B`. Accept only a configured exercise id. If it returns `high_plank` confidently, set `exercise.source` to `vision` and load that config. If it is unsure or names an unknown movement, set the job so the user must choose, and do not run a guessed check. The demo clip must still be runnable with `high_plank` selected by hand.
+11. **Vision label.** Send a few frames to `MiniCPM-V-4.7-1B`. Accept only a configured exercise id. If it returns `high_plank` confidently, set `exercise.source` to `vision`, set `exercise.model` to that catalogue id, and load that config. If it is not confident, ask `DeepSeek-V4-Flash-Vision-Exp` the same question and accept it on the same rule. If both are unsure or name an unknown movement, set the job so the user must choose, and do not run a guessed check. The demo clip must still be runnable with `high_plank` selected by hand.
 12. **Second movement.** Add one only after a human names it and supplies a clip. New joints, angle, target range, and error label go in a new config file. If the public `angles` object cannot represent that check, stop and ask for a contract change. Do not retune MediaPipe. Do not claim every movement.
 13. **Product shell.** `POST /analyze` with file type, size, and corrupt-video checks, plus `lang` and `pain_reported`. `GET /jobs/{job_id}` for polling. `DELETE /jobs/{job_id}` removes the stored video, artifacts, and job data this app controls.
 14. **Run and measure.** `docker-compose.yml` for the documented configuration. `backend/scripts/eval.py` only with human-supplied labels. If none exist, say **not measured yet**.

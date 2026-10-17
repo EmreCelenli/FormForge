@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.eggs/
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+.venv/
+venv/
+
+# Node and Next.js
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+
+# Local environment. .env.example stays tracked.
+.env
+*.local
+
+# OS
+.DS_Store
+
+# Local analysis data and private clips
+data/jobs/
+data/demo-coach/
+*.mov
+*.MOV
+backend/models/*.task
+
+# Prepared demo media. The logo stays tracked.
+frontend/public/plank.mp4
+frontend/public/plank-long.mp4
+frontend/public/coach/
+frontend/public/coach-long/
+frontend/public/coach-lang/
+frontend/src/data/result.json
+frontend/src/data/result-long.json

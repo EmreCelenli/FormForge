@@ -36,6 +36,7 @@ export interface Result {
     id: string;
     label: string;
     source: "vision" | "selected";
+    model: string | null;
   };
   confidence: number;
   coach: {

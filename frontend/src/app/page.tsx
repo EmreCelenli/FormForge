@@ -1,5 +1,5 @@
-import { PlaybackScreen } from "@/components/PlaybackScreen";
+import { DemoScreen } from "@/components/DemoScreen";
 
 export default function Page() {
-  return <PlaybackScreen status="empty" />;
+  return <DemoScreen />;
 }
