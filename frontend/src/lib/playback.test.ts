@@ -5,7 +5,10 @@ import {
   alignCorrectedToUserHip,
   alignmentDegrees,
   contentRect,
+  holdLineGap,
+  outsideBandPercent,
   frameIndex,
+  faultCloseness,
   inTargetRange,
   normalizedToView,
   lowEndJointNote,
@@ -30,6 +33,21 @@ test("letterbox keeps the video aspect inside a wider box", () => {
 test("normalized origin is the top left", () => {
   const point = normalizedToView({ x: 0, y: 0 }, { x: 10, y: 20, width: 100, height: 50 });
   assert.deepEqual(point, { x: 10, y: 20 });
+});
+
+test("line gap reports the peak of the hold and the corrected value there", () => {
+  assert.deepEqual(holdLineGap([0.1, 0.42, 0.2], [0, 0.01, 0]), { peak: 0.42, corrected: 0.01 });
+  assert.equal(outsideBandPercent([0, 8, -6], [-5, 5]), (200 / 3));
+});
+
+test("the measured line turns green as the hip enters the band", () => {
+  const range: [number, number] = [-5, 5];
+  assert.equal(faultCloseness(0, range), 1);
+  assert.equal(faultCloseness(-5, range), 1);
+  assert.equal(faultCloseness(40, range), 0);
+  assert.equal(faultCloseness(-53, range), 0);
+  assert.ok(faultCloseness(-16, range) > 0.6);
+  assert.ok(faultCloseness(-16, range) > faultCloseness(-40, range));
 });
 
 test("zero hip offset displays as a straight 180 degrees", () => {

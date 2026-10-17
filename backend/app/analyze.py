@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from app.angles import frame_offset
+from app.angles import frame_line_gap, frame_offset
 from app.coco import COCO_17
 from app.errors import misalignment_span, severity
 from app.planner import correct_frame
@@ -29,16 +29,30 @@ def analyze(
     minimum = config["min_keypoint_confidence"]
     band = tuple(config["target_range"])
     raw = [frame_offset(frame, width, height, minimum) for frame in frames]
+    raw_gap = [frame_line_gap(frame, width, height, minimum) for frame in frames]
     offsets = smooth(raw, 1)
     evaluable = sum(v is not None for v in offsets)
     confidence = evaluable / len(frames)
     low = confidence < config["min_evaluable_frame_ratio"]
     corrected_xy: list[list[list[float]]] = []
     corrected_offsets: list[float] = []
+    corrected_gaps: list[float] = []
+
+    def remeasure_gap(xy: list[list[float]], frame: list[list[float]]) -> float:
+        measured = frame_line_gap(
+            [row + [frame[i][2]] for i, row in enumerate(xy)],
+            width,
+            height,
+            minimum,
+        )
+        return 0.0 if measured is None else measured
+
     if low:
-        for frame, offset in zip(frames, offsets):
-            corrected_xy.append([[p[0], p[1]] for p in frame])
+        for frame, offset, gap in zip(frames, offsets, raw_gap):
+            xy = [[p[0], p[1]] for p in frame]
+            corrected_xy.append(xy)
             corrected_offsets.append(0.0 if offset is None else offset)
+            corrected_gaps.append(0.0 if gap is None else gap)
         errors = []
         status = "low_confidence"
     else:
@@ -61,6 +75,7 @@ def analyze(
             if offset is None:
                 corrected_xy.append([[p[0], p[1]] for p in frame])
                 corrected_offsets.append(0.0)
+                corrected_gaps.append(0.0)
                 continue
             xy, ok = correct_frame(frame, width, height, minimum, band)
             fixed = frame_offset(
@@ -72,10 +87,13 @@ def analyze(
             if ok and fixed is not None and band[0] <= fixed <= band[1]:
                 corrected_xy.append(xy)
                 corrected_offsets.append(fixed)
+                corrected_gaps.append(remeasure_gap(xy, frame))
             else:
                 corrected_xy.append([[p[0], p[1]] for p in frame])
                 corrected_offsets.append(offset)
+                corrected_gaps.append(remeasure_gap([[p[0], p[1]] for p in frame], frame))
     user_offsets = [0.0 if v is None else v for v in offsets]
+    user_gaps = [0.0 if v is None else v for v in raw_gap]
     return Result.model_validate(
         {
             "job_id": "local",
@@ -90,7 +108,12 @@ def analyze(
                     "user": user_offsets,
                     "corrected": corrected_offsets,
                     "target_range": band,
-                }
+                },
+                "line_gap": {
+                    "user": user_gaps,
+                    "corrected": corrected_gaps,
+                    "target_range": (0.0, 0.0),
+                },
             },
             "errors": errors,
             "exercise": {"id": config["id"], "label": config["label"], "source": "selected"},

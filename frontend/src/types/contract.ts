@@ -26,6 +26,7 @@ export interface Result {
   keypoints_corrected: number[][][];
   angles: {
     hip_offset: AngleSeries;
+    line_gap: AngleSeries;
   };
   errors: {
     type: "hip_misalignment";

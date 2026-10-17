@@ -75,6 +75,55 @@ export function inTargetRange(value: number, range: [number, number]): boolean {
   return Number.isFinite(value) && value >= range[0] && value <= range[1];
 }
 
+const FAULT_RED_AT_OFFSET = 40;
+
+export function faultCloseness(hipOffset: number, range: [number, number]): number {
+  if (!Number.isFinite(hipOffset)) return 0;
+  const band = Math.max(Math.abs(range[0]), Math.abs(range[1]));
+  const excess = Math.abs(hipOffset) - band;
+  if (excess <= 0) return 1;
+  return 1 - Math.min(1, excess / Math.max(1, FAULT_RED_AT_OFFSET - band));
+}
+
+export function faultLineColor(hipOffset: number, range: [number, number]): { stroke: string; glow: string } {
+  const closeness = faultCloseness(hipOffset, range);
+  const red = [255, 75, 92];
+  const amber = [240, 193, 74];
+  const green = [61, 220, 151];
+  const [from, to, amount] = closeness < 0.5
+    ? [red, amber, closeness / 0.5]
+    : [amber, green, (closeness - 0.5) / 0.5];
+  const channels = from.map((channel, index) => Math.round(channel + ((to[index] ?? channel) - channel) * amount));
+  const [r, g, b] = channels;
+  return { stroke: `rgb(${r}, ${g}, ${b})`, glow: `rgba(${r}, ${g}, ${b}, 0.85)` };
+}
+
+export function holdLineGap(user: number[], corrected: number[]): { peak: number; corrected: number } {
+  if (user.length === 0) return { peak: 0, corrected: 0 };
+  let index = 0;
+  for (let frame = 1; frame < user.length; frame += 1) {
+    if ((user[frame] ?? 0) > (user[index] ?? 0)) index = frame;
+  }
+  return { peak: user[index] ?? 0, corrected: corrected[index] ?? 0 };
+}
+
+export function outsideBandPercent(values: number[], range: [number, number]): number {
+  if (values.length === 0) return 0;
+  const outside = values.reduce(
+    (count, value) => count + (inTargetRange(value, range) ? 0 : 1),
+    0,
+  );
+  return (100 * outside) / values.length;
+}
+
+export function peakOffsetIndex(values: number[]): number {
+  let index = 0;
+  for (let frame = 1; frame < values.length; frame += 1) {
+    if (Math.abs(values[frame] ?? 0) > Math.abs(values[index] ?? 0)) index = frame;
+  }
+  return index;
+}
+
 export function contractIssue(result: Result): string | null {
   const frames = result.video.frames;
   const names = result.keypoint_names.length;
@@ -82,9 +131,13 @@ export function contractIssue(result: Result): string | null {
   if (result.keypoints_user.length !== frames || result.keypoints_corrected.length !== frames) {
     return "This result does not match the contract.";
   }
+  const lineGap = result.angles.line_gap;
   if (
     result.angles.hip_offset.user.length !== frames ||
-    result.angles.hip_offset.corrected.length !== frames
+    result.angles.hip_offset.corrected.length !== frames ||
+    !lineGap ||
+    lineGap.user.length !== frames ||
+    lineGap.corrected.length !== frames
   ) {
     return "This result does not match the contract.";
   }

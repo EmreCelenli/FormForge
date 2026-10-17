@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { Result } from "@/types/contract";
-import { CorrectedStage } from "@/components/CorrectedStage";
+import { CorrectedStage, FaultMark } from "@/components/CorrectedStage";
+import { FormReport } from "@/components/FormReport";
 import { useLanguage } from "@/components/LanguageState";
 import type { Copy, JointName } from "@/lib/i18n";
 import {
@@ -10,6 +11,7 @@ import {
   alignmentDegrees,
   contractIssue,
   frameIndex,
+  holdLineGap,
   inTargetRange,
   lowEndJoints,
   offsetLabel,
@@ -77,6 +79,7 @@ export function PlaybackScreen({
   const [frame, setFrame] = useState(0);
   const [videoNode, setVideoNode] = useState<HTMLVideoElement | null>(null);
   const [videoEpoch, setVideoEpoch] = useState(0);
+  const [reportOpen, setReportOpen] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const spokenStep = useRef<number | null>(null);
   const pendingStep = useRef<number | null>(null);
@@ -213,10 +216,34 @@ export function PlaybackScreen({
   );
   const stepIndex = spoken ? activeStepIndex(spoken.steps, frame) : -1;
   const endNote = jointNote(names, userFrame, copy);
+  const lineGapSeries = current.angles.line_gap;
+  const gap = lineGapSeries
+    ? holdLineGap(lineGapSeries.user, lineGapSeries.corrected)
+    : { peak: 0, corrected: 0 };
+
+  if (reportOpen && !unreliable && !issue) {
+    return (
+      <FormReport
+        result={current}
+        videoSrc={shownVideo}
+        coach={spoken}
+        copy={copy}
+        recognized={recognitionLine(current.exercise, copy)}
+        onClose={() => setReportOpen(false)}
+      />
+    );
+  }
 
   return (
     <Shell>
-      {toolbar}
+      <div className="clip-row">
+        {toolbar}
+        {!unreliable && !issue ? (
+          <button type="button" className="report-open" onClick={() => setReportOpen(true)}>
+            {copy.report}
+          </button>
+        ) : null}
+      </div>
       {example ? <p className="banner">{copy.exampleBanner}</p> : null}
       {current.safety.handover ? (
         <p className="banner" role="status">
@@ -233,7 +260,9 @@ export function PlaybackScreen({
       </p>
       <section className="panels compare" ref={compareRef}>
         <article className="panel user">
-          <h2>{copy.yourVideo}</h2>
+          <div className="panel-head">
+            <h2>{copy.yourVideo}</h2>
+          </div>
           <div className="stage media">
             {shownVideo ? (
               <video
@@ -248,6 +277,16 @@ export function PlaybackScreen({
             ) : (
               <p>{copy.clipMissing}</p>
             )}
+            {!unreliable && fault ? (
+              <FaultMark
+                names={names}
+                userFrame={userFrame}
+                mediaWidth={current.video.width}
+                mediaHeight={current.video.height}
+                hipOffset={userOffset}
+                range={range}
+              />
+            ) : null}
           </div>
           {!unreliable && fault ? (
             <p className="fault">
@@ -257,7 +296,10 @@ export function PlaybackScreen({
           ) : null}
         </article>
         <article className="panel corrected">
-          <h2>{copy.correctedForm}</h2>
+          <div className="panel-head">
+            <h2>{copy.correctedForm}</h2>
+            {showGhost ? <p className="same-clip">{copy.sameClip}</p> : null}
+          </div>
           <div className="stage media">
             {showGhost && !issue ? (
               <CorrectedStage
@@ -269,6 +311,7 @@ export function PlaybackScreen({
                 video={videoNode}
                 videoEpoch={videoEpoch}
                 showGhost
+                alignmentLabel={`${alignmentDegrees(correctedOffset).toFixed(0)}°`}
               />
             ) : (
               <p>{unreliable ? copy.correctedHidden : copy.notCorrected}</p>
@@ -288,6 +331,9 @@ export function PlaybackScreen({
             {copy.target(range[0], range[1])} {copy.straight}
           </p>
         )}
+        {!unreliable && !issue ? (
+          <p>{copy.lineGap((gap.peak * 100).toFixed(1), (gap.corrected * 100).toFixed(1))}</p>
+        ) : null}
       </section>
       <section className="coach" aria-label={copy.coach}>
         <h2>{copy.coach}</h2>
@@ -383,7 +429,9 @@ function EmptyPanels({
     <>
       <section className="panels">
         <article className="panel user">
-          <h2>{copy.yourVideo}</h2>
+          <div className="panel-head">
+            <h2>{copy.yourVideo}</h2>
+          </div>
           <div className={videoSrc ? "stage media" : "stage"}>
             {videoSrc ? (
               <video src={videoSrc} controls playsInline />
@@ -399,7 +447,9 @@ function EmptyPanels({
           ) : null}
         </article>
         <article className="panel corrected">
-          <h2>{copy.correctedForm}</h2>
+          <div className="panel-head">
+            <h2>{copy.correctedForm}</h2>
+          </div>
           <div className="stage"><p>{corrected}</p></div>
         </article>
       </section>

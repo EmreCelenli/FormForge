@@ -94,6 +94,9 @@ class Result(BaseModel):
         series = self.angles.get("hip_offset")
         if series is None or len(series.user) != n or len(series.corrected) != n:
             raise ValueError("hip_offset length does not match the clip")
+        gap = self.angles.get("line_gap")
+        if gap is None or len(gap.user) != n or len(gap.corrected) != n:
+            raise ValueError("line_gap length does not match the clip")
         for frame in self.keypoints_user:
             if len(frame) != 17 or any(len(p) != 3 for p in frame):
                 raise ValueError("each user keypoint is x, y, confidence")

@@ -34,6 +34,18 @@ export type Copy = {
   corrected: (degrees: string) => string;
   target: (from: number, to: number) => string;
   straight: string;
+  sameClip: string;
+  lineGap: (peak: string, corrected: string) => string;
+  report: string;
+  reportTitle: string;
+  reportLead: string;
+  reportPrint: string;
+  reportClose: string;
+  holdLength: (seconds: string) => string;
+  peakHip: (offset: string, meter: string, pose: string) => string;
+  outsideBand: (percent: string) => string;
+  worstFrame: string;
+  coachLines: string;
   pose: Record<"pike" | "sag" | "straight", string>;
   noReliableAngle: string;
   cueUnavailable: string;
@@ -89,6 +101,20 @@ const en: Copy = {
   corrected: (degrees) => `Corrected ${degrees}°.`,
   target: (from, to) => `Provisional target ${from}° to ${to}° offset.`,
   straight: "Straight is 180°.",
+  sameClip: "Same clip. Hip corrected.",
+  lineGap: (peak, corrected) =>
+    `At the worst moment the hip is ${peak}% of the shoulder–ankle line away from straight. The corrected pose brings that to ${corrected}%.`,
+  report: "Report",
+  reportTitle: "Form explanation",
+  reportLead: "A form explanation of this recorded hold.",
+  reportPrint: "Print",
+  reportClose: "Close",
+  holdLength: (seconds) => `Hold length ${seconds} s.`,
+  peakHip: (offset, meter, pose) =>
+    `Peak hip offset ${offset}° (${pose}). On the meter that is ${meter}°.`,
+  outsideBand: (percent) => `${percent}% of the hold is outside that band.`,
+  worstFrame: "Worst frame",
+  coachLines: "Coach lines",
   pose: { pike: "pike", sag: "sag", straight: "straight" },
   noReliableAngle: "No reliable angle for this frame.",
   cueUnavailable: "Cue unavailable.",
@@ -147,6 +173,20 @@ const fr: Copy = {
   corrected: (degrees) => `Corrigée ${degrees}°.`,
   target: (from, to) => `Cible provisoire : écart de ${from}° à ${to}°.`,
   straight: "Droit à 180°.",
+  sameClip: "Même extrait. Hanche corrigée.",
+  lineGap: (peak, corrected) =>
+    `Au moment le plus écarté, la hanche est à ${peak} % de la ligne épaule–cheville. La forme corrigée ramène cela à ${corrected} %.`,
+  report: "Rapport",
+  reportTitle: "Explication de la forme",
+  reportLead: "Une explication de la forme pour cette prise enregistrée.",
+  reportPrint: "Imprimer",
+  reportClose: "Fermer",
+  holdLength: (seconds) => `Durée de la prise ${seconds} s.`,
+  peakHip: (offset, meter, pose) =>
+    `Écart maximal des hanches ${offset}° (${pose}). Sur le compteur, cela fait ${meter}°.`,
+  outsideBand: (percent) => `${percent} % de la prise est hors de cette plage.`,
+  worstFrame: "Image la plus éloignée",
+  coachLines: "Lignes du conseil",
   pose: { pike: "pike", sag: "affaissement", straight: "droit" },
   noReliableAngle: "Pas d'angle fiable pour cette image.",
   cueUnavailable: "Consigne indisponible.",
@@ -205,6 +245,20 @@ const de: Copy = {
   corrected: (degrees) => `Korrigiert ${degrees}°.`,
   target: (from, to) => `Vorläufiges Ziel: Versatz ${from}° bis ${to}°.`,
   straight: "Gerade ist 180°.",
+  sameClip: "Derselbe Clip. Hüfte korrigiert.",
+  lineGap: (peak, corrected) =>
+    `Im stärksten Moment steht die Hüfte ${peak} % der Schulter-Knöchel-Linie von der Geraden weg. Die korrigierte Haltung bringt das auf ${corrected} %.`,
+  report: "Bericht",
+  reportTitle: "Formerklärung",
+  reportLead: "Eine Formerklärung dieser aufgenommenen Halteposition.",
+  reportPrint: "Drucken",
+  reportClose: "Schließen",
+  holdLength: (seconds) => `Haltedauer ${seconds} s.`,
+  peakHip: (offset, meter, pose) =>
+    `Größter Hüftversatz ${offset}° (${pose}). Auf der Anzeige sind das ${meter}°.`,
+  outsideBand: (percent) => `${percent} % der Halteposition liegen außerhalb dieses Bereichs.`,
+  worstFrame: "Weitestes Bild",
+  coachLines: "Coach-Zeilen",
   pose: { pike: "Pike", sag: "Durchhängen", straight: "gerade" },
   noReliableAngle: "Kein zuverlässiger Winkel für dieses Bild.",
   cueUnavailable: "Hinweis nicht verfügbar.",
@@ -263,6 +317,20 @@ const es: Copy = {
   corrected: (degrees) => `Corregido ${degrees}°.`,
   target: (from, to) => `Objetivo provisional: desvío de ${from}° a ${to}°.`,
   straight: "Recto es 180°.",
+  sameClip: "El mismo clip. Cadera corregida.",
+  lineGap: (peak, corrected) =>
+    `En el momento más alejado, la cadera está a un ${peak} % de la línea hombro–tobillo. La forma corregida lo deja en ${corrected} %.`,
+  report: "Informe",
+  reportTitle: "Explicación de la forma",
+  reportLead: "Una explicación de la forma de esta aguante grabada.",
+  reportPrint: "Imprimir",
+  reportClose: "Cerrar",
+  holdLength: (seconds) => `Duración del aguante ${seconds} s.`,
+  peakHip: (offset, meter, pose) =>
+    `Desvío máximo de la cadera ${offset}° (${pose}). En el medidor son ${meter}°.`,
+  outsideBand: (percent) => `${percent} % del aguante está fuera de ese rango.`,
+  worstFrame: "Fotograma más alejado",
+  coachLines: "Líneas de la guía",
   pose: { pike: "pike", sag: "caída", straight: "recto" },
   noReliableAngle: "No hay un ángulo fiable en este fotograma.",
   cueUnavailable: "Indicación no disponible.",
@@ -321,6 +389,20 @@ const pt: Copy = {
   corrected: (degrees) => `Corrigido ${degrees}°.`,
   target: (from, to) => `Alvo provisório: desvio de ${from}° a ${to}°.`,
   straight: "Reto é 180°.",
+  sameClip: "O mesmo clipe. Anca corrigida.",
+  lineGap: (peak, corrected) =>
+    `No momento mais afastado, a anca está a ${peak}% da linha ombro–tornozelo. A forma corrigida deixa isso em ${corrected}%.`,
+  report: "Relatório",
+  reportTitle: "Explicação da forma",
+  reportLead: "Uma explicação da forma desta isometria gravada.",
+  reportPrint: "Imprimir",
+  reportClose: "Fechar",
+  holdLength: (seconds) => `Duração da isometria ${seconds} s.`,
+  peakHip: (offset, meter, pose) =>
+    `Desvio máximo da anca ${offset}° (${pose}). No medidor são ${meter}°.`,
+  outsideBand: (percent) => `${percent}% da isometria está fora desse intervalo.`,
+  worstFrame: "Imagem mais afastada",
+  coachLines: "Linhas da orientação",
   pose: { pike: "pike", sag: "descida", straight: "reto" },
   noReliableAngle: "Sem ângulo fiável nesta imagem.",
   cueUnavailable: "Indicação indisponível.",

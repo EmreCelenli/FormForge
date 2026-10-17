@@ -188,6 +188,7 @@ interface Result {
   keypoints_corrected: number[][][]; // [frames][17][2]: normalized x, y
   angles: {
     hip_offset: AngleSeries; // signed degrees from the shoulder–ankle line
+    line_gap: AngleSeries; // hip's perpendicular distance divided by the shoulder–ankle length; 0 is on the line
   };
   errors: {
     type: "hip_misalignment";

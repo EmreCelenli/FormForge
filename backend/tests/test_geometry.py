@@ -1,7 +1,7 @@
 import unittest
 
 from app.analyze import analyze
-from app.angles import frame_offset, hip_offset_degrees
+from app.angles import frame_offset, hip_offset_degrees, line_gap_fraction
 from app.coco import COCO_17, index
 from app.planner import correct_frame
 from app.schemas import Result
@@ -35,6 +35,20 @@ class GeometryTest(unittest.TestCase):
         self.assertLess(pike, 0)
         wide = hip_offset_degrees((0.1, 0.4), (0.25, 0.7), (0.4, 0.4), 200, 100)
         self.assertAlmostEqual(sag, wide, places=6)
+
+    def test_line_gap_is_hip_distance_over_the_shoulder_ankle_line(self):
+        straight = line_gap_fraction((0.2, 0.4), (0.5, 0.4), (0.8, 0.4), 100, 100)
+        sag = line_gap_fraction((0.2, 0.4), (0.5, 0.7), (0.8, 0.4), 100, 100)
+        pike = line_gap_fraction((0.2, 0.4), (0.5, 0.2), (0.8, 0.4), 100, 100)
+        wide = line_gap_fraction((0.1, 0.4), (0.25, 0.7), (0.4, 0.4), 200, 100)
+        self.assertEqual(straight, 0.0)
+        self.assertAlmostEqual(sag, 0.5, places=6)
+        self.assertAlmostEqual(pike, 1 / 3, places=6)
+        self.assertAlmostEqual(sag, wide, places=6)
+        result = analyze([side_plank(0.7)], 100, 100)
+        self.assertGreater(result.angles["line_gap"].user[0], 0.2)
+        self.assertAlmostEqual(result.angles["line_gap"].corrected[0], 0.0, places=4)
+        self.assertEqual(result.angles["line_gap"].target_range, (0.0, 0.0))
 
     def test_visible_side_is_not_an_average(self):
         frame = side_plank(0.7)
