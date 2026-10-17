@@ -1,23 +1,15 @@
-<p align="center">
-  <img src="frontend/public/logo_readme.png" alt="FormForge" width="220">
-</p>
+![FormForge](frontend/public/logo_readme.png)
 
-<p align="center">
-  <strong>Form meets precision.</strong><br>
-  Your own clip, beside the same rep with the form corrected.
-</p>
+**Form meets precision.**  
+Your own clip, beside the same rep with the form corrected.
 
-<p align="center">
-  <strong>AMD Token Factory · MiniCPM-V / DeepSeek Vision · MediaPipe Pose · Gemma 4 · Gradium TTS</sub>
-</p>
-
-<p align="center">
-  <img src="frontend/public/frontend_readme.png" alt="FormForge showing a high plank beside the corrected form, with a cyan hologram, 180-degree alignment, angle meter, and coaching cues." width="920">
-</p>
+![FormForge showing a high plank beside the corrected form, with a cyan hologram, 180-degree alignment, angle meter, and coaching cues.](frontend/public/frontend_readme.png)
 
 Most form analysis stops at a skeleton, a score, or a warning. **FormForge shows the corrected form on the movement you actually recorded**: same person, same timing, same camera view.
 
-This hackathon POC focuses on one thing and makes it unmistakable: a side-view high plank with piking. The original clip shows the measured shoulder–hip–ankle path. Beside it, deterministic geometry places the hip on the straight line and draws a cyan hologram over the same video. Straight reads as **180°**. A live meter explains the difference, and a short spoken cue arrives on the matching frames.
+This hackathon POC focuses on one thing and makes it unmistakable: a side-view high plank with piking or sagging hips. The original clip shows the measured shoulder–hip–ankle path. Beside it, deterministic geometry places the hip on the straight line and draws a cyan hologram over the same video. Straight reads as **180°**. A live meter explains the difference, and a short spoken cue arrives on the matching frames.
+
+## AMD Token Factory · MiniCPM-V / DeepSeek Vision · MediaPipe Pose · Gemma 4 · Gradium TTS
 
 ## Why it is different
 
@@ -106,7 +98,7 @@ English on the demo plays the coach saved with the clip. Another language asks G
 
 ## Roadmap
 
-**An every-movement platform.** The long-term aim is to support every movement that can be expressed as a validated visual check: strength training, calisthenics, mobility, yoga, meditation postures, and physiotherapy movements. Each movement receives its own joints, geometry, target, correction rule, and evidence. Fitness checks can be coach-reviewed; physiotherapy checks can be clinician-designed and validated. The same pose platform and playback experience serve the full library.
+**The next attempt.** After this plank demo is accepted, the same person records the same hold again. The two clips are compared on hip offset and line gap, so the measured change is visible.
 
 **AMD GPU across the media pipeline.** Today the language and vision models are reached through AMD Token Factory while pose and geometry run locally on CPU. The GPU roadmap moves the compute-heavy video path—decode and frame preparation, scalable pose inference, smoothing, batch analysis, and concurrent-session processing—to AMD GPU infrastructure. That turns the single-clip POC into a high-throughput movement-analysis service while preserving deterministic correction and reporting the device that actually ran each stage.
 
