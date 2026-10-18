@@ -12,6 +12,7 @@ export function CorrectedStage({
   video,
   videoEpoch,
   showGhost,
+  showMarks,
   alignmentLabel,
 }: {
   names: string[];
@@ -22,6 +23,7 @@ export function CorrectedStage({
   video: HTMLVideoElement | null;
   videoEpoch: number;
   showGhost: boolean;
+  showMarks: boolean;
   alignmentLabel: string;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -46,7 +48,9 @@ export function CorrectedStage({
       if (video && video.readyState >= 2) {
         context.drawImage(video, rect.x, rect.y, rect.width, rect.height);
       }
-      drawHologram(context, names, userFrame, correctedFrame, rect, width / 480, alignmentLabel);
+      if (showMarks) {
+        drawHologram(context, names, userFrame, correctedFrame, rect, width / 480, alignmentLabel);
+      }
     };
     draw();
     const box = canvas.parentElement;
@@ -62,7 +66,7 @@ export function CorrectedStage({
       video.removeEventListener("seeked", draw);
       if (frameCallback !== undefined) video.cancelVideoFrameCallback?.(frameCallback);
     };
-  }, [names, userFrame, correctedFrame, mediaWidth, mediaHeight, video, videoEpoch, showGhost, alignmentLabel]);
+  }, [names, userFrame, correctedFrame, mediaWidth, mediaHeight, video, videoEpoch, showGhost, showMarks, alignmentLabel]);
 
   return <canvas ref={canvasRef} className="ghost" aria-hidden="true" />;
 }

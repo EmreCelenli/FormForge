@@ -80,6 +80,7 @@ export function PlaybackScreen({
   const [videoNode, setVideoNode] = useState<HTMLVideoElement | null>(null);
   const [videoEpoch, setVideoEpoch] = useState(0);
   const [reportOpen, setReportOpen] = useState(false);
+  const [linesOn, setLinesOn] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const spokenStep = useRef<number | null>(null);
   const pendingStep = useRef<number | null>(null);
@@ -96,6 +97,15 @@ export function PlaybackScreen({
     };
     document.addEventListener("fullscreenchange", moveFullscreen);
     return () => document.removeEventListener("fullscreenchange", moveFullscreen);
+  }, [videoNode, shownVideo]);
+
+  useEffect(() => {
+    setLinesOn(false);
+    const video = videoRef.current;
+    if (!video) return;
+    const onPlay = () => setLinesOn(true);
+    video.addEventListener("play", onPlay);
+    return () => video.removeEventListener("play", onPlay);
   }, [videoNode, shownVideo]);
 
   useEffect(() => {
@@ -277,7 +287,7 @@ export function PlaybackScreen({
             ) : (
               <p>{copy.clipMissing}</p>
             )}
-            {!unreliable && fault ? (
+            {!unreliable && fault && linesOn ? (
               <FaultMark
                 names={names}
                 userFrame={userFrame}
@@ -288,7 +298,7 @@ export function PlaybackScreen({
               />
             ) : null}
           </div>
-          {!unreliable && fault ? (
+          {!unreliable && fault && linesOn ? (
             <p className="fault">
               {offsetLabel(userOffset) === "pike" ? copy.pikingHips : copy.saggingHips}
               <span> {copy.severity[fault.severity]}. {copy.engineeringLabel}</span>
@@ -311,6 +321,7 @@ export function PlaybackScreen({
                 video={videoNode}
                 videoEpoch={videoEpoch}
                 showGhost
+                showMarks={linesOn}
                 alignmentLabel={`${alignmentDegrees(correctedOffset).toFixed(0)}°`}
               />
             ) : (
