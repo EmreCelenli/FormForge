@@ -1,75 +1,29 @@
-import { spawn } from "child_process";
-import { readFile } from "fs/promises";
-import path from "path";
-import { repoRoot } from "@/lib/jobs";
+import shortDe from "@/data/demo-coach/short/de.json";
+import shortEs from "@/data/demo-coach/short/es.json";
+import shortFr from "@/data/demo-coach/short/fr.json";
+import shortPt from "@/data/demo-coach/short/pt.json";
+import longDe from "@/data/demo-coach/long/de.json";
+import longEs from "@/data/demo-coach/long/es.json";
+import longFr from "@/data/demo-coach/long/fr.json";
+import longPt from "@/data/demo-coach/long/pt.json";
 
 export const runtime = "nodejs";
 
-const CLIPS = {
-  short: "frontend/src/data/result.json",
-  long: "frontend/src/data/result-long.json",
+const COACHES = {
+  short: { de: shortDe, es: shortEs, fr: shortFr, pt: shortPt },
+  long: { de: longDe, es: longEs, fr: longFr, pt: longPt },
 } as const;
 
-const LANGS = new Set(["fr", "de", "es", "pt"]);
-const pending = new Map<string, Promise<boolean>>();
-
-function run(root: string, clip: keyof typeof CLIPS, lang: string): Promise<boolean> {
-  const key = `${clip}:${lang}`;
-  const current = pending.get(key);
-  if (current) return current;
-  const job = new Promise<boolean>((resolve) => {
-    const child = spawn(
-      path.join(root, "backend", ".venv", "bin", "python"),
-      [
-        path.join(root, "backend", "scripts", "coach_clip.py"),
-        "--result",
-        path.join(/*turbopackIgnore: true*/ root, CLIPS[clip]),
-        "--lang",
-        lang,
-        "--audio-dir",
-        path.join(root, "frontend", "public", "coach-lang", clip, lang),
-        "--audio-prefix",
-        `/coach-lang/${clip}/${lang}`,
-        "--out",
-        path.join(root, "data", "demo-coach", clip, `${lang}.json`),
-      ],
-      { cwd: root, stdio: ["ignore", "ignore", "inherit"] },
-    );
-    const timer = setTimeout(() => {
-      child.kill();
-      resolve(false);
-    }, 120_000);
-    child.on("error", () => {
-      clearTimeout(timer);
-      resolve(false);
-    });
-    child.on("close", (code) => {
-      clearTimeout(timer);
-      resolve(code === 0);
-    });
-  }).finally(() => {
-    pending.delete(key);
-  });
-  pending.set(key, job);
-  return job;
-}
+type ClipId = keyof typeof COACHES;
+type DemoLang = keyof (typeof COACHES)["short"];
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const clip = url.searchParams.get("clip");
   const lang = url.searchParams.get("lang");
-  if ((clip !== "short" && clip !== "long") || !lang || !LANGS.has(lang)) {
+  if ((clip !== "short" && clip !== "long") || !lang || !["de", "es", "fr", "pt"].includes(lang)) {
     return Response.json({ coach: null }, { status: 400 });
   }
-  const root = repoRoot();
-  const ok = await run(root, clip, lang);
-  if (!ok) return Response.json({ coach: null }, { status: 502 });
-  try {
-    const coach = JSON.parse(
-      await readFile(path.join(root, "data", "demo-coach", clip, `${lang}.json`), "utf8"),
-    );
-    return Response.json({ coach });
-  } catch {
-    return Response.json({ coach: null }, { status: 502 });
-  }
+  const coach = COACHES[clip as ClipId][lang as DemoLang];
+  return Response.json({ coach });
 }
