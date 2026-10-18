@@ -108,6 +108,8 @@ English on the demo plays the coach saved with the clip. Another language asks G
 
 **The next attempt.** After this plank demo is accepted, the same person records the same hold again. The two clips are compared on hip offset and line gap, so the measured change is visible.
 
+**Practice for a repeated pattern.** When that same measured error shows up again, FormForge can offer a few related movements that practice the pattern. A plank whose hip keeps leaving the line through the legs can lead to movements that train the same hip and leg line. Each suggestion is its own checked movement, with the same kind of correction, meter, and cue.
+
 **An every-movement platform.** The long-term aim is to support every movement that can be expressed as a validated visual check: strength training, calisthenics, mobility, yoga, meditation postures, and physiotherapy movements. Each movement receives its own joints, geometry, target, correction rule, and evidence. Fitness checks can be coach-reviewed; physiotherapy checks can be clinician-designed and validated. The same pose platform and playback experience serve the full library.
 
 **AMD GPU across the media pipeline.** Today the language and vision models are reached through AMD Token Factory while pose and geometry run locally on CPU. The GPU roadmap moves the compute-heavy video path—decode and frame preparation, scalable pose inference, smoothing, batch analysis, and concurrent-session processing—to AMD GPU infrastructure. That turns the single-clip POC into a high-throughput movement-analysis service while preserving deterministic correction and reporting the device that actually ran each stage.
